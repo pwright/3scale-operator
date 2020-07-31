@@ -162,7 +162,7 @@ func (r *ReconcileBackend) reconcile(backendResource *capabilitiesv1beta1.Backen
 		return reconcile.Result{}, err
 	}
 
-	providerAccount, err := helper.LookupProviderAccount(r.Client(), backendResource.Namespace, backendResource.Spec.ProviderAccountRef, r.Logger())
+	providerAccount, err := helper.LookupProviderAccount(r.Client(), backendResource.Namespace, backendResource.Spec.ProviderAccountRef, logger)
 	if err != nil {
 		return reconcile.Result{}, fmt.Errorf("reconcile backend spec: %w", err)
 	}
@@ -172,12 +172,12 @@ func (r *ReconcileBackend) reconcile(backendResource *capabilitiesv1beta1.Backen
 		return reconcile.Result{}, fmt.Errorf("reconcile backend spec: %w", err)
 	}
 
-	backendRemoteIndex, err := helper.NewBackendAPIRemoteIndex(threescaleAPIClient, r.Logger())
+	backendRemoteIndex, err := helper.NewBackendAPIRemoteIndex(threescaleAPIClient, logger)
 	if err != nil {
 		return reconcile.Result{}, fmt.Errorf("reconcile backend spec: %w", err)
 	}
 
-	reconciler := NewThreescaleReconciler(r.BaseReconciler, backendResource, threescaleAPIClient, backendRemoteIndex)
+	reconciler := NewThreescaleReconciler(r.BaseReconciler, backendResource, threescaleAPIClient, backendRemoteIndex, providerAccount)
 	backendAPIEntity, syncErr := reconciler.Reconcile()
 
 	statusReconciler := NewStatusReconciler(r.BaseReconciler, backendResource, backendAPIEntity, providerAccount.AdminURLStr, syncErr)
