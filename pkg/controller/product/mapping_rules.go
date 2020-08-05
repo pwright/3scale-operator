@@ -131,6 +131,18 @@ func (t *ThreescaleReconciler) reconcileMatchedMappingRules(matchedList []mappin
 			params["delta"] = strconv.Itoa(data.spec.Increment)
 		}
 
+		//
+		// Reconcile last
+		//
+		desiredLastAttribute := false
+		if data.spec.Last != nil {
+			desiredLastAttribute = *data.spec.Last
+		}
+
+		if desiredLastAttribute != data.item.Last {
+			params["last"] = strconv.FormatBool(desiredLastAttribute)
+		}
+
 		if len(params) > 0 {
 			err := t.productEntity.UpdateMappingRule(data.item.ID, params)
 			if err != nil {
@@ -154,11 +166,17 @@ func (t *ThreescaleReconciler) createNewMappingRules(desiredList []capabilitiesv
 			return errors.New("product metric method ref for mapping rule not found")
 		}
 
+		lastAttribute := false
+		if spec.Last != nil {
+			lastAttribute = *spec.Last
+		}
+
 		params := threescaleapi.Params{
 			"pattern":     spec.Pattern,
 			"http_method": spec.HTTPMethod,
 			"metric_id":   strconv.FormatInt(metricID, 10),
 			"delta":       strconv.Itoa(spec.Increment),
+			"last":        strconv.FormatBool(lastAttribute),
 		}
 
 		err = t.productEntity.CreateMappingRule(params)
